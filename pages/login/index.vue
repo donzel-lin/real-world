@@ -20,6 +20,7 @@
 					<form @submit.prevent="onSubmit">
 						<fieldset v-if="!isLogin" class="form-group">
 							<input
+								v-model="user.username"
 								required
 								class="form-control form-control-lg"
 								type="text"
@@ -53,13 +54,16 @@
 </template>
 
 <script>
-import { login } from '~/api/user';
-
+import { login, register } from '~/api/user';
+import { mapState, mapMutations } from 'vuex';
+const Cookie = process.client ? require('js-cookie') : null;
 export default {
 	name: 'LoginIndex',
+	middleware: 'notAuthenticated',
 	data() {
 		return {
 			user: {
+				username: '',
 				email: '',
 				password: '',
 			},
@@ -75,12 +79,15 @@ export default {
 		},
 	},
 	methods: {
+		...mapMutations('user', ['setUser']),
 		async onSubmit() {
 			try {
-				const { data } = await login(this.user);
+				const request = this.isLogin ? login : register;
+				const { data } = await request(this.user);
 				console.log(data, 'res');
-
-				// this.$router.push('/');
+				this.setUser(data.user);
+				Cookie.set('user', JSON.stringify(data.user));
+				this.$router.push('/');
 			} catch (e) {
 				console.dir(e.response.data.errors, 'e');
 				this.errors = e.response.data.errors;

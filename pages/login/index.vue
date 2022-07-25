@@ -64,8 +64,8 @@ export default {
 		return {
 			user: {
 				username: '',
-				email: '',
-				password: '',
+				email: 'applewennie895@163.com',
+				password: 'nie13517247387',
 			},
 			errors: {},
 		};

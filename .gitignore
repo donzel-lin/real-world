@@ -29,3 +29,4 @@ pnpm-debug.log*
 
 dist.zip
 public/config.js
+*.rar

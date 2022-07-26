@@ -30,7 +30,7 @@ module.exports = {
                         component: resolve(__dirname, 'pages/login/')
                     },
                     {
-                        path: '/profile/:username', // profile 用户信息, 动态路由
+                        path: '/profile/:username/:favorite?', // profile 用户信息, 动态路由
                         name: 'profile',
                         component: resolve(__dirname, 'pages/profile/')
                     },
@@ -52,5 +52,8 @@ module.exports = {
                 ]
             }])
         }
-    }
+    },
+    plugins: [
+        '~/plugins/request.js'
+    ]
 }

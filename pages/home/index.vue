@@ -40,7 +40,7 @@
 									>Global Feed
 								</nuxt-link>
 							</li>
-							<li class="nav-item" v-if="tab">
+							<li class="nav-item" v-if="tag">
 								<nuxt-link
 									class="nav-link"
 									exact
@@ -49,6 +49,7 @@
 										name: 'home',
 										query: {
 											tab: tag,
+											tag,
 										},
 									}"
 									>#{{ tag }}
@@ -61,7 +62,16 @@
 							<div class="article-meta">
 								<a href="profile.html"><img :src="article.author.image" /></a>
 								<div class="info">
-									<a href="" class="author">{{ article.author.username }}</a>
+									<nuxt-link
+										:to="{
+											name: 'profile',
+											params: {
+												username: article.author.username,
+											},
+										}"
+										class="author"
+										>{{ article.author.username }}</nuxt-link
+									>
 									<span class="date">{{ article.updatedAt }}</span>
 								</div>
 								<button
@@ -75,11 +85,19 @@
 									<i class="ion-heart"></i> {{ article.favoritesCount }}
 								</button>
 							</div>
-							<a href="" class="preview-link">
+							<nuxt-link
+								:to="{
+									name: 'article',
+									params: {
+										slug: article.slug,
+									},
+								}"
+								class="preview-link"
+							>
 								<h1>{{ article.title }}</h1>
 								<p>{{ article.description }}</p>
 								<span>{{ article.body }}</span>
-							</a>
+							</nuxt-link>
 						</div>
 					</template>
 				</div>
@@ -152,7 +170,7 @@ export default {
 			tags,
 			page,
 			tag,
-			tab: tag,
+			tab: tag || 'global_feed',
 		};
 	},
 	computed: {
@@ -160,10 +178,13 @@ export default {
 	},
 	methods: {
 		async favoriteArticle(article) {
-			await faroriteArticle({
+			const { data } = await faroriteArticle({
 				slug: article.slug,
 				method: article.favorited ? 'delete' : 'post',
 			});
+			const { article: newArticle } = data;
+			const index = this.articles.findIndex(x => x.slug === newArticle.slug);
+			this.articles.splice(index, 1, newArticle);
 		},
 	},
 };

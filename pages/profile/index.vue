@@ -4,15 +4,27 @@
 			<div class="container">
 				<div class="row">
 					<div class="col-xs-12 col-md-10 offset-md-1">
-						<img src="http://i.imgur.com/Qr71crq.jpg" class="user-img" />
-						<h4>Eric Simons</h4>
+						<img :src="profile.image" class="user-img" />
+						<h4>{{ profile.username }}</h4>
 						<p>
-							Cofounder @GoThinkster, lived in Aol's HQ for a few months, kinda
-							looks like Peeta from the Hunger Games
+							{{ profile.bio }}
 						</p>
-						<button class="btn btn-sm btn-outline-secondary action-btn">
+						<button
+							v-if="isSelf"
+							class="btn btn-sm btn-outline-secondary action-btn"
+							@click="goToSettings"
+						>
+							<i class="ion-gear-a"></i>
+							&nbsp; Edit Profile Settings
+						</button>
+						<button
+							v-else
+							class="btn btn-sm btn-outline-secondary action-btn"
+							@click="followUser"
+						>
 							<i class="ion-plus-round"></i>
-							&nbsp; Follow Eric Simons
+							&nbsp; {{ profile.following ? 'Unfollow' : 'Follow' }}
+							{{ username }}
 						</button>
 					</div>
 				</div>
@@ -25,55 +37,70 @@
 					<div class="articles-toggle">
 						<ul class="nav nav-pills outline-active">
 							<li class="nav-item">
-								<a class="nav-link active" href="">My Articles</a>
+								<nuxt-link
+									class="nav-link"
+									exact
+									:to="{
+										name: 'profile',
+										params: {
+											username: this.username,
+										},
+									}"
+									>My Articles
+								</nuxt-link>
 							</li>
 							<li class="nav-item">
-								<a class="nav-link" href="">Favorited Articles</a>
+								<nuxt-link
+									class="nav-link"
+									exact
+									:to="{
+										name: 'profile',
+										params: {
+											username: this.username,
+											favorite: 'favorites',
+										},
+									}"
+									>Favorited Articles
+								</nuxt-link>
 							</li>
 						</ul>
 					</div>
 
-					<div class="article-preview">
+					<div
+						v-for="article in articles"
+						:key="article.slug"
+						class="article-preview"
+					>
 						<div class="article-meta">
-							<a href=""><img src="http://i.imgur.com/Qr71crq.jpg" /></a>
+							<a href=""><img :src="article.author.image" /></a>
 							<div class="info">
-								<a href="" class="author">Eric Simons</a>
-								<span class="date">January 20th</span>
+								<a href="" class="author">article.author.username</a>
+								<span class="date">article.updatedAt</span>
 							</div>
-							<button class="btn btn-outline-primary btn-sm pull-xs-right">
-								<i class="ion-heart"></i> 29
+							<button
+								class="btn btn-sm pull-xs-right"
+								:class="{
+									'btn-primary': article.favorited,
+									'btn-outline-primary': !article.favorited,
+								}"
+								@click="favoriteArticle(article)"
+							>
+								<i class="ion-heart"></i> {{ article.favoritesCount }}
 							</button>
 						</div>
-						<a href="" class="preview-link">
-							<h1>How to build webapps that scale</h1>
-							<p>This is the description for the post.</p>
-							<span>Read more...</span>
-						</a>
-					</div>
-
-					<div class="article-preview">
-						<div class="article-meta">
-							<a href=""><img src="http://i.imgur.com/N4VcUeJ.jpg" /></a>
-							<div class="info">
-								<a href="" class="author">Albert Pai</a>
-								<span class="date">January 20th</span>
-							</div>
-							<button class="btn btn-outline-primary btn-sm pull-xs-right">
-								<i class="ion-heart"></i> 32
-							</button>
-						</div>
-						<a href="" class="preview-link">
-							<h1>
-								The song you won't ever stop singing. No matter how hard you
-								try.
-							</h1>
-							<p>This is the description for the post.</p>
-							<span>Read more...</span>
-							<ul class="tag-list">
-								<li class="tag-default tag-pill tag-outline">Music</li>
-								<li class="tag-default tag-pill tag-outline">Song</li>
-							</ul>
-						</a>
+						<nuxt-link
+							:to="{
+								name: 'article',
+								params: {
+									slug: article.slug,
+								},
+							}"
+							class="preview-link"
+						>
+							<h1>{{ article.title }}</h1>
+							<p>{{ article.description }}</p>
+							<span>{{ article.body }}</span>
+						</nuxt-link>
 					</div>
 				</div>
 			</div>
@@ -82,9 +109,72 @@
 </template>
 
 <script>
+import { getProfile, editFavorite } from '../../api/profile';
+import { getArticles, faroriteArticle } from '../../api/articles';
+import { mapState } from 'vuex';
 export default {
 	name: 'idnex',
 	middleware: 'authenticated',
+	async asyncData({
+		isDev,
+		route,
+		store,
+		env,
+		params,
+		query,
+		req,
+		res,
+		redirect,
+		error,
+	}) {
+		const { username, favorite } = params;
+		const { user } = store.state.user;
+		const { data } = await getProfile({ username });
+		const key = !!favorite ? 'favorited' : 'author';
+
+		const { data: articleData } = await getArticles({
+			[key]: username,
+			offset: 0,
+			limit: 5,
+		});
+		const { articles, articlesCount } = articleData;
+		return {
+			profile: data.profile,
+			username,
+			articles,
+			articlesCount,
+		};
+	},
+	computed: {
+		...mapState('user', ['user']),
+		isSelf() {
+			return this.username === this.user.username;
+		},
+	},
+	methods: {
+		goToSettings() {
+			this.$router.push({
+				name: 'settings',
+			});
+		},
+		async followUser() {
+			const { data } = await editFavorite({
+				username: this.username,
+				method: this.profile.following ? 'delete' : 'post',
+			});
+			const { profile } = data;
+			this.profile = profile;
+		},
+		async favoriteArticle(article) {
+			const { data } = await faroriteArticle({
+				slug: article.slug,
+				method: article.favorited ? 'delete' : 'post',
+			});
+			const { article: newArticle } = data;
+			const index = this.articles.findIndex(x => x.slug === newArticle.slug);
+			this.articles.splice(index, 1, newArticle);
+		},
+	},
 };
 </script>
 

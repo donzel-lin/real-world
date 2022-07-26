@@ -52,6 +52,10 @@
 							</button>
 						</fieldset>
 					</form>
+					<hr />
+					<!-- <button class="btn btn-outline-danger">
+						Or click here to logout.
+					</button> -->
 				</div>
 			</div>
 		</div>
@@ -88,7 +92,7 @@ export default {
 				...this.userInfo,
 			};
 			// formData.append('user', user);
-			await updateUser(user);
+			const { data } = await updateUser(user);
 		},
 	},
 };

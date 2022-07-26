@@ -1,4 +1,4 @@
-import request from "~/api/request";
+import { request } from "../plugins/request"
 
 export const getTags = () => {
     return request({

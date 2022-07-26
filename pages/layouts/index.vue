@@ -12,7 +12,7 @@
 					</li>
 					<template v-if="user">
 						<li class="nav-item">
-							<nuxt-link class="nav-link" to="/article/1">
+							<nuxt-link class="nav-link" to="/editor/">
 								<i class="ion-compose"></i>&nbsp;New Article
 							</nuxt-link>
 						</li>
@@ -22,13 +22,13 @@
 							</nuxt-link>
 						</li>
 						<li class="nav-item">
-							<nuxt-link class="nav-link" to="/profile/123">
+							<nuxt-link class="nav-link" :to="`/profile/${user.username}`">
 								<img
 									class="user-pic"
 									src="https://img2.baidu.com/it/u=1474431687,1721287933&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500"
 									alt=""
 								/>
-								alvin
+								{{ user.username }}
 							</nuxt-link>
 						</li>
 					</template>

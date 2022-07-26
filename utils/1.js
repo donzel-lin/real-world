@@ -7,3 +7,4 @@ function fn(a) {
 }
 fn(a)
 console.log(a.num)
+// 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

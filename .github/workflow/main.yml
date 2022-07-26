@@ -52,7 +52,7 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           script: |
-            cd /root/realworld-nuxtjs
+            cd /root/realworld
             wget https://github.com/donzel-lin/real-world/releases/latest/download/release.tgz -O release.tgz
             tar zxvf release.tgz
             npm install --production

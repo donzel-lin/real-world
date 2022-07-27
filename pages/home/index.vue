@@ -105,7 +105,6 @@
 				<div class="col-md-3">
 					<div class="sidebar">
 						<p>Popular Tags</p>
-
 						<div class="tag-list">
 							<template v-for="tag in tags">
 								<nuxt-link
@@ -114,6 +113,7 @@
 										name: 'home',
 										query: {
 											tag,
+											tab: tag,
 											page: $route.query.page,
 										},
 									}"
@@ -153,7 +153,7 @@ export default {
 			store.state.user.user && tab === 'your_feed'
 				? getMyArticles
 				: getArticles;
-		const limit = 20;
+		const limit = 200;
 		const [articleRes, tagRes] = await Promise.all([
 			loadArticles({
 				tag,
@@ -170,7 +170,7 @@ export default {
 			tags,
 			page,
 			tag,
-			tab: tag || 'global_feed',
+			tab,
 		};
 	},
 	computed: {

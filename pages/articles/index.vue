@@ -220,12 +220,19 @@ export default {
 				slug: this.slug,
 			};
 			const { data } = await addComment(params);
+			this.refreshComment();
 		},
 		async deleteComment(id) {
 			const { data } = await deleteComment({
 				slug: this.slug,
 				id,
 			});
+			this.refreshComment();
+		},
+		async refreshComment() {
+			const { data } = await getComment(this.slug);
+			const { comments } = data;
+			this.comments = comments;
 		},
 	},
 };

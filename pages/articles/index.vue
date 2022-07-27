@@ -8,7 +8,7 @@
 					<a href=""><img :src="article.author.image" /></a>
 					<div class="info">
 						<a href="" class="author">{{ article.author.username }}</a>
-						<span class="date">{{ article.updatedAt | timeFilter }}</span>
+						<span class="date">{{ article.updatedAt | formateDate }}</span>
 					</div>
 					<button
 						class="btn btn-sm"
@@ -56,7 +56,7 @@
 					<a href=""><img :src="article.author.image" /></a>
 					<div class="info">
 						<a href="" class="author">{{ article.author.username }}</a>
-						<span class="date">{{ article.updatedAt | timeFilter }}</span>
+						<span class="date">{{ article.updatedAt | formateDate }}</span>
 					</div>
 
 					<button
@@ -104,39 +104,7 @@
 							<button class="btn btn-sm btn-primary">Post Comment</button>
 						</div>
 					</form>
-
-					<div v-for="comment in comments" :key="comment.id" class="card">
-						<div class="card-block">
-							<p class="card-text">
-								{{ comment.body }}
-							</p>
-						</div>
-						<div class="card-footer">
-							<a href="" class="comment-author">
-								<img :src="comment.author.image" class="comment-author-img" />
-							</a>
-							&nbsp;
-							<nuxt-link
-								:to="{
-									name: 'profile',
-									params: {
-										username: comment.author.username,
-									},
-								}"
-								class="comment-author"
-								>{{ comment.author.username }}</nuxt-link
-							>
-							<span class="date-posted">{{
-								comment.updatedAt | timeFilter
-							}}</span>
-							<span
-								class="mod-options"
-								v-if="comment.author.username === user.username"
-							>
-								<i class="ion-trash-a" @click="deleteComment(comment.id)"></i>
-							</span>
-						</div>
-					</div>
+					<comment :key="commentKey" :slug="slug" />
 				</div>
 			</div>
 		</div>
@@ -149,24 +117,22 @@ import {
 	faroriteArticle,
 	getComment,
 	addComment,
-	deleteComment,
 } from '../../api/articles';
 import { editFavorite } from '../../api/profile';
-import { formateDate } from '../../utils/time';
 import { mapState } from 'vuex';
+import Comment from '../components/Comment.vue';
 export default {
 	name: 'articleIndex',
+	components: {
+		Comment,
+	},
 	data() {
 		return {
 			comment: {
 				body: '',
 			},
+			commentKey: +new Date().getTime(),
 		};
-	},
-	filters: {
-		timeFilter(date) {
-			return formateDate(date);
-		},
 	},
 	computed: {
 		...mapState('user', ['user']),
@@ -184,17 +150,24 @@ export default {
 		error,
 	}) {
 		const { slug } = params;
-		const [articleRes, commentRes] = await Promise.all([
-			getArticle(slug),
-			getComment(slug),
-		]);
+		const [articleRes] = await Promise.all([getArticle(slug)]);
 
 		const { article } = articleRes.data;
-		const { comments } = commentRes.data;
 		return {
 			article,
-			comments,
 			slug,
+		};
+	},
+	head() {
+		return {
+			title: this.article.title,
+			meta: [
+				{
+					hid: '121',
+					name: this.article.description,
+					content: '哈哈哈哈哈',
+				},
+			],
 		};
 	},
 	methods: {
@@ -222,17 +195,11 @@ export default {
 			const { data } = await addComment(params);
 			this.refreshComment();
 		},
-		async deleteComment(id) {
-			const { data } = await deleteComment({
-				slug: this.slug,
-				id,
-			});
-			this.refreshComment();
-		},
 		async refreshComment() {
-			const { data } = await getComment(this.slug);
-			const { comments } = data;
-			this.comments = comments;
+			this.comment = {
+				body: '',
+			};
+			this.commentKey = +new Date().getTime();
 		},
 	},
 };

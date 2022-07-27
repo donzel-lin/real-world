@@ -53,7 +53,6 @@ export const getComment = (slug) => {
 }
 
 export const addComment =( { slug, comment}) => {
-    console.log(slug, comment, 'adsf')
     return request({
         method: 'post',
         url: `/articles/${slug}/comments`,
